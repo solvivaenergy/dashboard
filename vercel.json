@@ -1,8 +1,5 @@
 {
-  "functions": {
-    "api/data.py": {
-      "runtime": "@vercel/python",
-      "maxDuration": 60
-    }
-  }
+  "builds": [
+    { "src": "api/data.py", "use": "@vercel/python" }
+  ]
 }
