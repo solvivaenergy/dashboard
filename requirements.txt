@@ -1,1 +1,0 @@
-# no external deps needed — xmlrpc.client is stdlib
