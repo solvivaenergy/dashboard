@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/data.py": {
+      "maxDuration": 60
+    }
+  }
+}

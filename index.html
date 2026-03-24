@@ -3,422 +3,145 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Email Blast Effectiveness — Solviva</title>
+<title>Email Blast Effectiveness - Solviva</title>
 <style>
-  :root {
-    --lime: #d2ff1e;
-    --dark-green: #1f522b;
-    --blue: #006ac6;
-    --bg: #0d1117;
-    --card: #161b22;
-    --card-border: #30363d;
-    --text: #e6edf3;
-    --text-muted: #8b949e;
-    --won: #2ea043;
-    --parked: #da3633;
-    --sql: #006ac6;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-         background: var(--bg); color: var(--text); line-height: 1.5; }
-
-  .header { background: linear-gradient(135deg, var(--dark-green) 0%, #0d1117 100%);
-             padding: 32px 40px; border-bottom: 3px solid var(--lime); }
-  .header h1 { font-size: 28px; font-weight: 700; color: var(--lime); }
-  .header .subtitle { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
-  .header .meta { color: var(--text-muted); font-size: 12px; margin-top: 8px; }
-
-  .container { max-width: 1280px; margin: 0 auto; padding: 24px 40px 60px; }
-
-  /* KPI row */
-  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-              gap: 16px; margin-bottom: 32px; }
-  .kpi { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px;
-          padding: 20px; text-align: center; }
-  .kpi-val { font-size: 32px; font-weight: 700; color: var(--lime); }
-  .kpi-lbl { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
-  .kpi.accent .kpi-val { color: var(--blue); }
-  .kpi.warn .kpi-val { color: #da3633; }
-  .kpi.good .kpi-val { color: var(--won); }
-
-  h2 { font-size: 20px; color: var(--lime); margin: 32px 0 16px;
-       border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
-  h4 { font-size: 14px; color: var(--text-muted); margin: 12px 0 8px; }
-
-  /* Transitions */
-  .trans-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-  .trans-table th { text-align: left; font-size: 12px; color: var(--text-muted);
-                     text-transform: uppercase; padding: 8px 12px; border-bottom: 1px solid var(--card-border); }
-  .trans-table td { padding: 10px 12px; border-bottom: 1px solid #21262d; }
-  .trans-table .num { font-weight: 700; font-size: 18px; color: var(--lime); text-align: right; }
-  .arrow { color: var(--text-muted); margin: 0 6px; }
-
-  .stage-tag { display: inline-block; padding: 2px 10px; border-radius: 12px;
-                font-size: 12px; font-weight: 600; background: #30363d; color: var(--text); }
-  .tag-won { background: rgba(46,160,67,.2); color: #56d364; }
-  .tag-parked { background: rgba(218,54,51,.15); color: #f85149; }
-  .tag-sql { background: rgba(0,106,198,.2); color: #58a6ff; }
-
-  /* Leads table */
-  .leads-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .leads-table th { text-align: left; font-size: 11px; color: var(--text-muted);
-                     text-transform: uppercase; padding: 10px 12px;
-                     border-bottom: 2px solid var(--card-border); position: sticky; top: 0;
-                     background: var(--bg); }
-  .leads-table td { padding: 10px 12px; border-bottom: 1px solid #21262d; vertical-align: top; }
-  .leads-table tr:hover { background: #1c2128; }
-  .lead-id { color: var(--text-muted); font-family: monospace; }
-  .email { color: var(--text-muted); font-size: 12px; }
-  .icon-yes { color: var(--won); font-weight: 700; }
-  .icon-no { color: #484f58; }
-  .transition { margin-bottom: 4px; }
-  .transition .dt { color: var(--text-muted); font-size: 11px; margin-right: 6px; }
-  .batch { color: var(--text-muted); font-size: 11px; }
-
-  /* Batch cards */
-  .batch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 20px; }
-  .batch-card { background: var(--card); border: 1px solid var(--card-border);
-                 border-radius: 12px; padding: 20px; }
-  .batch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .batch-id { font-weight: 700; color: var(--lime); }
-  .batch-date { color: var(--text-muted); font-size: 13px; }
-  .batch-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
-  .mini-kpi { text-align: center; padding: 8px 4px; background: #0d1117; border-radius: 8px; }
-  .mini-kpi.highlight { background: rgba(210,255,30,.06); }
-  .mini-val { display: block; font-size: 18px; font-weight: 700; color: var(--text); }
-  .mini-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
-  .mini-kpi.highlight .mini-val { color: var(--lime); }
-
-  .dist-chart { margin-bottom: 8px; }
-  .dist-row { display: flex; align-items: center; margin-bottom: 4px; }
-  .dist-label { width: 140px; font-size: 12px; color: var(--text-muted); flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .dist-bar-bg { flex: 1; height: 14px; background: #21262d; border-radius: 7px; overflow: hidden; margin: 0 8px; }
-  .dist-bar { height: 100%; background: linear-gradient(90deg, var(--dark-green), var(--lime)); border-radius: 7px; }
-  .dist-count { font-size: 12px; font-weight: 600; width: 36px; text-align: right; }
-
-  /* Insight box */
-  .insight { background: rgba(210,255,30,.06); border: 1px solid rgba(210,255,30,.15);
-              border-radius: 12px; padding: 20px; margin-top: 24px; }
-  .insight h3 { color: var(--lime); font-size: 16px; margin-bottom: 8px; }
-  .insight p { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
-  .insight strong { color: var(--text); }
-
-  @media (max-width: 768px) {
-    .container { padding: 16px; }
-    .kpi-row { grid-template-columns: repeat(2, 1fr); }
-    .batch-kpis { grid-template-columns: repeat(2, 1fr); }
-  }
+:root{--lime:#d2ff1e;--dark-green:#1f522b;--blue:#006ac6;--bg:#0d1117;--card:#161b22;--card-border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--won:#2ea043;--parked:#da3633;--sql:#006ac6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+.header{background:linear-gradient(135deg,var(--dark-green)0%,#0d1117 100%);padding:32px 40px;border-bottom:3px solid var(--lime)}
+.header h1{font-size:28px;font-weight:700;color:var(--lime);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.header .subtitle{color:var(--text-muted);font-size:14px;margin-top:4px}
+.header .meta{color:var(--text-muted);font-size:12px;margin-top:8px}
+.container{max-width:1280px;margin:0 auto;padding:24px 40px 60px}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:32px}
+.kpi{background:var(--card);border:1px solid var(--card-border);border-radius:12px;padding:20px;text-align:center}
+.kpi-val{font-size:32px;font-weight:700;color:var(--lime)}
+.kpi-lbl{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+.kpi.accent .kpi-val{color:var(--blue)}.kpi.warn .kpi-val{color:#da3633}.kpi.good .kpi-val{color:var(--won)}
+h2{font-size:20px;color:var(--lime);margin:32px 0 16px;border-bottom:1px solid var(--card-border);padding-bottom:8px}
+h4{font-size:14px;color:var(--text-muted);margin:12px 0 8px}
+.trans-table{width:100%;border-collapse:collapse;margin-bottom:24px}
+.trans-table th{text-align:left;font-size:12px;color:var(--text-muted);text-transform:uppercase;padding:8px 12px;border-bottom:1px solid var(--card-border)}
+.trans-table td{padding:10px 12px;border-bottom:1px solid #21262d}
+.trans-table .num{font-weight:700;font-size:18px;color:var(--lime);text-align:right}
+.arrow{color:var(--text-muted);margin:0 6px}
+.stage-tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;background:#30363d;color:var(--text)}
+.tag-won{background:rgba(46,160,67,.2);color:#56d364}
+.tag-parked{background:rgba(218,54,51,.15);color:#f85149}
+.tag-sql{background:rgba(0,106,198,.2);color:#58a6ff}
+.leads-table{width:100%;border-collapse:collapse;font-size:13px}
+.leads-table th{text-align:left;font-size:11px;color:var(--text-muted);text-transform:uppercase;padding:10px 12px;border-bottom:2px solid var(--card-border);position:sticky;top:0;background:var(--bg)}
+.leads-table td{padding:10px 12px;border-bottom:1px solid #21262d;vertical-align:top}
+.leads-table tr:hover{background:#1c2128}
+.lead-id{color:var(--text-muted);font-family:monospace}
+.email{color:var(--text-muted);font-size:12px}
+.icon-yes{color:var(--won);font-weight:700}.icon-no{color:#484f58}
+.transition{margin-bottom:4px}.transition .dt{color:var(--text-muted);font-size:11px;margin-right:6px}
+.batch{color:var(--text-muted);font-size:11px}
+.batch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:20px}
+.batch-card{background:var(--card);border:1px solid var(--card-border);border-radius:12px;padding:20px}
+.batch-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.batch-id{font-weight:700;color:var(--lime)}.batch-date{color:var(--text-muted);font-size:13px}
+.batch-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.mini-kpi{text-align:center;padding:8px 4px;background:#0d1117;border-radius:8px}
+.mini-kpi.highlight{background:rgba(210,255,30,.06)}
+.mini-val{display:block;font-size:18px;font-weight:700;color:var(--text)}
+.mini-lbl{font-size:10px;color:var(--text-muted);text-transform:uppercase}
+.mini-kpi.highlight .mini-val{color:var(--lime)}
+.dist-chart{margin-bottom:8px}.dist-row{display:flex;align-items:center;margin-bottom:4px}
+.dist-label{width:140px;font-size:12px;color:var(--text-muted);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dist-bar-bg{flex:1;height:14px;background:#21262d;border-radius:7px;overflow:hidden;margin:0 8px}
+.dist-bar{height:100%;background:linear-gradient(90deg,var(--dark-green),var(--lime));border-radius:7px}
+.dist-count{font-size:12px;font-weight:600;width:36px;text-align:right}
+.insight{background:rgba(210,255,30,.06);border:1px solid rgba(210,255,30,.15);border-radius:12px;padding:20px;margin-top:24px}
+.insight h3{color:var(--lime);font-size:16px;margin-bottom:8px}
+.insight p{color:var(--text-muted);font-size:14px;line-height:1.6}
+.insight strong{color:var(--text)}
+.loading{text-align:center;padding:80px 20px}
+.spinner{width:48px;height:48px;border:4px solid var(--card-border);border-top-color:var(--lime);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{color:var(--text-muted);font-size:14px}
+.error-box{background:rgba(218,54,51,.1);border:1px solid rgba(218,54,51,.3);border-radius:12px;padding:20px;margin:20px 0;color:#f85149}
+.refresh-btn{background:var(--dark-green);color:var(--lime);border:1px solid var(--lime);padding:8px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+.refresh-btn:hover{background:var(--lime);color:var(--dark-green)}
+.refresh-btn:disabled{opacity:.5;cursor:not-allowed}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+@media(max-width:768px){.container{padding:16px}.kpi-row{grid-template-columns:repeat(2,1fr)}.batch-kpis{grid-template-columns:repeat(2,1fr)}.header{padding:20px}}
 </style>
 </head>
 <body>
-
 <div class="header">
-  <h1>Email Blast Effectiveness Dashboard</h1>
-  <div class="subtitle">&ldquo;Our lowest prices yet - Until May 31 only.&rdquo;</div>
-  <div class="meta">Generated 2026-03-24 18:16 &middot; 3 mailing batch(es) analyzed</div>
+<h1>Email Blast Effectiveness Dashboard <button class="refresh-btn" onclick="loadData()" id="refreshBtn">&#8635; Refresh</button></h1>
+<div class="subtitle" id="subtitle">&ldquo;Our lowest prices yet - Until May 31 only.&rdquo;</div>
+<div class="meta" id="meta">Loading live data from Odoo...</div>
 </div>
-
-<div class="container">
-
-  <!-- AGGREGATE KPIs -->
-  <h2>Aggregate Performance</h2>
-  <div class="kpi-row">
-    <div class="kpi"><div class="kpi-val">846</div><div class="kpi-lbl">Total Sent</div></div>
-    <div class="kpi"><div class="kpi-val">839</div><div class="kpi-lbl">Delivered</div></div>
-    <div class="kpi accent"><div class="kpi-val">231</div><div class="kpi-lbl">Opened</div></div>
-    <div class="kpi accent"><div class="kpi-val">27.3%</div><div class="kpi-lbl">Open Rate</div></div>
-    <div class="kpi accent"><div class="kpi-val">6</div><div class="kpi-lbl">Clicked</div></div>
-    <div class="kpi accent"><div class="kpi-val">0.7%</div><div class="kpi-lbl">Click Rate</div></div>
-    <div class="kpi warn"><div class="kpi-val">7</div><div class="kpi-lbl">Bounced</div></div>
-    <div class="kpi good"><div class="kpi-val">18</div><div class="kpi-lbl">Leads Moved</div></div>
-    <div class="kpi good"><div class="kpi-val">2.0%</div><div class="kpi-lbl">Move Rate</div></div>
-  </div>
-
-  <!-- STAGE TRANSITIONS -->
-  <h2>Stage Transitions (Post-Blast)</h2>
-  <table class="trans-table">
-    <thead><tr><th>From Stage</th><th></th><th>To Stage</th><th style="text-align:right">Count</th></tr></thead>
-    <tbody>
-        <tr>
-          <td>04 Evaluation</td>
-          <td><span class="arrow">→</span></td>
-          <td><span class="stage-tag tag-sql">03 SQL</span></td>
-          <td class="num">13</td>
-        </tr>
-        <tr>
-          <td>04 Evaluation</td>
-          <td><span class="arrow">→</span></td>
-          <td><span class="stage-tag tag-parked">Parked</span></td>
-          <td class="num">3</td>
-        </tr>
-        <tr>
-          <td>04 Evaluation</td>
-          <td><span class="arrow">→</span></td>
-          <td><span class="stage-tag tag-won">06 Closed Sale</span></td>
-          <td class="num">2</td>
-        </tr>
-        <tr>
-          <td>03 SQL</td>
-          <td><span class="arrow">→</span></td>
-          <td><span class="stage-tag ">04 Evaluation</span></td>
-          <td class="num">1</td>
-        </tr></tbody>
-  </table>
-
-  <!-- TRANSITIONED LEADS TABLE -->
-  <h2>Transitioned Leads (18)</h2>
-  <div style="overflow-x:auto;">
-  <table class="leads-table">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Lead / Email</th>
-        <th>Current Stage</th>
-        <th>Opened</th>
-        <th>Clicked</th>
-        <th>Stage Transitions</th>
-        <th>Batch</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td class="lead-id">160957</td>
-          <td><strong>Abe Arcenal</strong><br><span class="email">Abe.Arcenal@sa-BrandExpert.com</span></td>
-          <td><span class="stage-tag">03 SQL</span></td>
-          <td><span class="icon-yes">&#10003;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-19 01:57</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-sql">03 SQL</span></div></td>
-          <td class="batch">ID 286</td>
-        </tr>
-        <tr>
-          <td class="lead-id">134014</td>
-          <td><strong>Mavell Punongbayan-Punzalan</strong><br><span class="email">mavell05@yahoo.com</span></td>
-          <td><span class="stage-tag">03 SQL</span></td>
-          <td><span class="icon-yes">&#10003;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-19 14:02</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-sql">03 SQL</span></div></td>
-          <td class="batch">ID 257</td>
-        </tr>
-        <tr>
-          <td class="lead-id">124616</td>
-          <td><strong>Noli Sarmiento</strong><br><span class="email">nolsarmiento@yahoo.com.ph</span></td>
-          <td><span class="stage-tag">03 SQL</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-19 14:12</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-sql">03 SQL</span></div></td>
-          <td class="batch">ID 287</td>
-        </tr>
-        <tr>
-          <td class="lead-id">127642</td>
-          <td><strong>Ela Eduria</strong><br><span class="email">elaeduria@gmail.com</span></td>
-          <td><span class="stage-tag">03 SQL</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-19 14:14</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-sql">03 SQL</span></div></td>
-          <td class="batch">ID 287</td>
-        </tr>
-        <tr>
-          <td class="lead-id">129395</td>
-          <td><strong>Mark Marifosque</strong><br><span class="email">markmarifosque@gmail.com</span></td>
-          <td><span class="stage-tag">03 SQL</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-19 14:15</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-sql">03 SQL</span></div></td>
-          <td class="batch">ID 257</td>
-        </tr>
-        <tr>
-          <td class="lead-id">131332</td>
-          <td><strong>Grace Rodillas-Velasco</strong><br><span class="email">grvelasco2021@gmail.com</span></td>
-          <td><span class="stage-tag">03 SQL</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-19 14:15</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-sql">03 SQL</span></div></td>
-          <td class="batch">ID 257</td>
-        </tr>
-        <tr>
-          <td class="lead-id">131995</td>
-          <td><strong>Marivic Guevara</strong><br><span class="email">amserenityconstruction@gmail.com</span></td>
-          <td><span class="stage-tag">03 SQL</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-19 14:16</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-sql">03 SQL</span></div></td>
-          <td class="batch">ID 257</td>
-        </tr>
-        <tr>
-          <td class="lead-id">132793</td>
-          <td><strong>Ronald Ortencio</strong><br><span class="email">silortencio@gmail.com / ronaldortencio06@gmail.com</span></td>
-          <td><span class="stage-tag">04 Evaluation</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-19 14:17</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-sql">03 SQL</span></div><div class="transition"><span class="dt">2026-03-19 14:17</span> 03 SQL <span class="arrow">→</span> <span class="stage-tag ">04 Evaluation</span></div></td>
-          <td class="batch">ID 257</td>
-        </tr>
-        <tr>
-          <td class="lead-id">133223</td>
-          <td><strong>Arnaldo De Guzman</strong><br><span class="email">aodeguzman@yahoo.com</span></td>
-          <td><span class="stage-tag">03 SQL</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-19 14:19</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-sql">03 SQL</span></div></td>
-          <td class="batch">ID 257</td>
-        </tr>
-        <tr>
-          <td class="lead-id">137410</td>
-          <td><strong>Senn Alcones</strong><br><span class="email">alconesjunsen06@gmail.com</span></td>
-          <td><span class="stage-tag">03 SQL</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-19 14:20</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-sql">03 SQL</span></div></td>
-          <td class="batch">ID 257</td>
-        </tr>
-        <tr>
-          <td class="lead-id">154017</td>
-          <td><strong>Maria Hernandez</strong><br><span class="email">mariachernandez26@gmail.com</span></td>
-          <td><span class="stage-tag">03 SQL</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-19 14:20</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-sql">03 SQL</span></div></td>
-          <td class="batch">ID 286</td>
-        </tr>
-        <tr>
-          <td class="lead-id">73051</td>
-          <td><strong>Jane Reyes</strong><br><span class="email">janereyes032004@yahoo.com</span></td>
-          <td><span class="stage-tag">03 SQL</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-21 02:03</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-sql">03 SQL</span></div></td>
-          <td class="batch">ID 287</td>
-        </tr>
-        <tr>
-          <td class="lead-id">111293</td>
-          <td><strong>Christine Marie D. Lim</strong><br><span class="email">christinesdizon@gmail.com</span></td>
-          <td><span class="stage-tag">03 SQL</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-22 08:03</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-sql">03 SQL</span></div></td>
-          <td class="batch">ID 287</td>
-        </tr>
-        <tr>
-          <td class="lead-id">98400</td>
-          <td><strong>Daisy Builders Lagundi Branch</strong><br><span class="email">dbretail2018@gmail.com</span></td>
-          <td><span class="stage-tag">Parked</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-23 09:17</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-parked">Parked</span></div></td>
-          <td class="batch">ID 287</td>
-        </tr>
-        <tr>
-          <td class="lead-id">98399</td>
-          <td><strong>Daisy Builders Teresa Branch Meter #1644</strong><br><span class="email">dbretail2018@gmail.com</span></td>
-          <td><span class="stage-tag">Parked</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-23 09:17</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-parked">Parked</span></div></td>
-          <td class="batch">ID 287</td>
-        </tr>
-        <tr>
-          <td class="lead-id">98398</td>
-          <td><strong>Daisy Builders Teresa Branch Meter #5669</strong><br><span class="email">dbretail2018@gmail.com</span></td>
-          <td><span class="stage-tag">Parked</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-23 09:17</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-parked">Parked</span></div></td>
-          <td class="batch">ID 287</td>
-        </tr>
-        <tr>
-          <td class="lead-id">161651</td>
-          <td><strong>Regan Reyes</strong><br><span class="email">s2pediv2.0@yahoo.com</span></td>
-          <td><span class="stage-tag">06 Closed Sale</span></td>
-          <td><span class="icon-yes">&#10003;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-24 01:11</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-won">06 Closed Sale</span></div></td>
-          <td class="batch">ID 286</td>
-        </tr>
-        <tr>
-          <td class="lead-id">90770</td>
-          <td><strong>Emmelaine Caparros</strong><br><span class="email">winteriscoming10272012@gmail.com</span></td>
-          <td><span class="stage-tag">06 Closed Sale</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><span class="icon-no">&#10007;</span></td>
-          <td><div class="transition"><span class="dt">2026-03-24 05:57</span> 04 Evaluation <span class="arrow">→</span> <span class="stage-tag tag-won">06 Closed Sale</span></div></td>
-          <td class="batch">ID 287</td>
-        </tr></tbody>
-  </table>
-  </div>
-
-  <!-- PER-BATCH DETAILS -->
-  <h2>Per-Batch Breakdown</h2>
-  <div class="batch-grid">
-        <div class="batch-card">
-          <div class="batch-header">
-            <span class="batch-id">Mailing #287</span>
-            <span class="batch-date">2026-03-19</span>
-          </div>
-          <div class="batch-kpis">
-            <div class="mini-kpi"><span class="mini-val">630</span><span class="mini-lbl">Sent</span></div>
-            <div class="mini-kpi"><span class="mini-val">630</span><span class="mini-lbl">Delivered</span></div>
-            <div class="mini-kpi"><span class="mini-val">162</span><span class="mini-lbl">Opened</span></div>
-            <div class="mini-kpi"><span class="mini-val">24.4%</span><span class="mini-lbl">Open Rate</span></div>
-            <div class="mini-kpi"><span class="mini-val">3</span><span class="mini-lbl">Clicked</span></div>
-            <div class="mini-kpi"><span class="mini-val">0.5%</span><span class="mini-lbl">Click Rate</span></div>
-            <div class="mini-kpi highlight"><span class="mini-val">8</span><span class="mini-lbl">Moved</span></div>
-            <div class="mini-kpi highlight"><span class="mini-val">1.2%</span><span class="mini-lbl">Move Rate</span></div>
-          </div>
-          <h4>Current Stage Distribution</h4>
-          <div class="dist-chart"><div class="dist-row"><span class="dist-label">04 Evaluation</span><div class="dist-bar-bg"><div class="dist-bar" style="width:100.0%"></div></div><span class="dist-count">652</span></div><div class="dist-row"><span class="dist-label">03 SQL</span><div class="dist-bar-bg"><div class="dist-bar" style="width:0.6134969325153374%"></div></div><span class="dist-count">4</span></div><div class="dist-row"><span class="dist-label">Parked</span><div class="dist-bar-bg"><div class="dist-bar" style="width:0.4601226993865031%"></div></div><span class="dist-count">3</span></div><div class="dist-row"><span class="dist-label">05 Negotiation</span><div class="dist-bar-bg"><div class="dist-bar" style="width:0.4601226993865031%"></div></div><span class="dist-count">3</span></div><div class="dist-row"><span class="dist-label">06 Closed Sale</span><div class="dist-bar-bg"><div class="dist-bar" style="width:0.15337423312883436%"></div></div><span class="dist-count">1</span></div></div>
-        </div>
-        <div class="batch-card">
-          <div class="batch-header">
-            <span class="batch-id">Mailing #286</span>
-            <span class="batch-date">2026-03-19</span>
-          </div>
-          <div class="batch-kpis">
-            <div class="mini-kpi"><span class="mini-val">84</span><span class="mini-lbl">Sent</span></div>
-            <div class="mini-kpi"><span class="mini-val">83</span><span class="mini-lbl">Delivered</span></div>
-            <div class="mini-kpi"><span class="mini-val">28</span><span class="mini-lbl">Opened</span></div>
-            <div class="mini-kpi"><span class="mini-val">33.3%</span><span class="mini-lbl">Open Rate</span></div>
-            <div class="mini-kpi"><span class="mini-val">1</span><span class="mini-lbl">Clicked</span></div>
-            <div class="mini-kpi"><span class="mini-val">1.2%</span><span class="mini-lbl">Click Rate</span></div>
-            <div class="mini-kpi highlight"><span class="mini-val">3</span><span class="mini-lbl">Moved</span></div>
-            <div class="mini-kpi highlight"><span class="mini-val">3.6%</span><span class="mini-lbl">Move Rate</span></div>
-          </div>
-          <h4>Current Stage Distribution</h4>
-          <div class="dist-chart"><div class="dist-row"><span class="dist-label">04 Evaluation</span><div class="dist-bar-bg"><div class="dist-bar" style="width:100.0%"></div></div><span class="dist-count">79</span></div><div class="dist-row"><span class="dist-label">03 SQL</span><div class="dist-bar-bg"><div class="dist-bar" style="width:2.5316455696202533%"></div></div><span class="dist-count">2</span></div><div class="dist-row"><span class="dist-label">05 Negotiation</span><div class="dist-bar-bg"><div class="dist-bar" style="width:2.5316455696202533%"></div></div><span class="dist-count">2</span></div><div class="dist-row"><span class="dist-label">06 Closed Sale</span><div class="dist-bar-bg"><div class="dist-bar" style="width:1.2658227848101267%"></div></div><span class="dist-count">1</span></div></div>
-        </div>
-        <div class="batch-card">
-          <div class="batch-header">
-            <span class="batch-id">Mailing #257</span>
-            <span class="batch-date">2026-03-18</span>
-          </div>
-          <div class="batch-kpis">
-            <div class="mini-kpi"><span class="mini-val">132</span><span class="mini-lbl">Sent</span></div>
-            <div class="mini-kpi"><span class="mini-val">126</span><span class="mini-lbl">Delivered</span></div>
-            <div class="mini-kpi"><span class="mini-val">41</span><span class="mini-lbl">Opened</span></div>
-            <div class="mini-kpi"><span class="mini-val">31.1%</span><span class="mini-lbl">Open Rate</span></div>
-            <div class="mini-kpi"><span class="mini-val">2</span><span class="mini-lbl">Clicked</span></div>
-            <div class="mini-kpi"><span class="mini-val">1.5%</span><span class="mini-lbl">Click Rate</span></div>
-            <div class="mini-kpi highlight"><span class="mini-val">7</span><span class="mini-lbl">Moved</span></div>
-            <div class="mini-kpi highlight"><span class="mini-val">5.3%</span><span class="mini-lbl">Move Rate</span></div>
-          </div>
-          <h4>Current Stage Distribution</h4>
-          <div class="dist-chart"><div class="dist-row"><span class="dist-label">04 Evaluation</span><div class="dist-bar-bg"><div class="dist-bar" style="width:100.0%"></div></div><span class="dist-count">123</span></div><div class="dist-row"><span class="dist-label">03 SQL</span><div class="dist-bar-bg"><div class="dist-bar" style="width:4.878048780487805%"></div></div><span class="dist-count">6</span></div><div class="dist-row"><span class="dist-label">05 Negotiation</span><div class="dist-bar-bg"><div class="dist-bar" style="width:2.4390243902439024%"></div></div><span class="dist-count">3</span></div></div>
-        </div></div>
-
-  <!-- INSIGHT -->
-  <div class="insight">
-    <h3>Key Takeaways</h3>
-    <p>
-      Across <strong>3 mailing batches</strong>, <strong>846</strong> emails were sent
-      to leads in the Evaluation stage. <strong>231</strong> recipients opened the email
-      (<strong>27.3%</strong> open rate), and <strong>6</strong> clicked a link.
-    </p>
-    <p style="margin-top:8px;">
-      <strong>18 lead(s)</strong> moved to a different stage after the blast
-      (<strong>2.0%</strong> conversion).
-      
-    </p>
-  </div>
-
+<div class="container" id="content">
+<div class="loading" id="loadingState"><div class="spinner"></div><p>Fetching live data from Odoo...<br>This may take up to 60 seconds on first load.</p></div>
 </div>
-</body>
-</html>
+<script>
+const API_URL='/api/data';
+function esc(t){const d=document.createElement('div');d.textContent=String(t||'');return d.innerHTML}
+function stc(n){if(!n)return '';if(n.includes('Closed Sale')||n.includes('Won'))return 'tag-won';if(n.includes('Parked')||n.includes('Lost'))return 'tag-parked';if(n.includes('SQL'))return 'tag-sql';return ''}
+function pct(n,d){return d?(n/d*100).toFixed(1):'0.0'}
+function kpi(v,l,c){return '<div class="kpi '+c+'"><div class="kpi-val">'+v+'</div><div class="kpi-lbl">'+l+'</div></div>'}
+function mk(v,l,h){return '<div class="mini-kpi'+(h?' highlight':'')+'"><span class="mini-val">'+v+'</span><span class="mini-lbl">'+l+'</span></div>'}
+
+function render(resp){
+  const D=resp.data||[],gen=resp.generated_at||new Date().toISOString();
+  if(!D.length){document.getElementById('content').innerHTML='<div class="error-box">No mailing data returned from Odoo.</div>';return}
+  document.getElementById('subtitle').innerHTML='&ldquo;'+esc(D[0].subject)+'&rdquo;';
+  document.getElementById('meta').innerHTML='<span class="status-dot" style="background:var(--won)"></span>Live data &middot; Last fetched: '+esc(gen)+' &middot; '+D.length+' batch(es)';
+  let aS=0,aD=0,aO=0,aC=0,aB=0,aL=0,aM=0;
+  D.forEach(d=>{aS+=d.stats.sent;aD+=d.stats.delivered;aO+=d.stats.opened;aC+=d.stats.clicked;aB+=d.stats.bounced;aL+=d.total_leads;aM+=d.leads_moved});
+  const seen=new Set(),allM=[];
+  D.forEach(d=>(d.moved_leads||[]).forEach(m=>{if(!seen.has(m.lead_id)){seen.add(m.lead_id);m._batch='ID '+d.mailing_id;m._sd=d.sent_date;allM.push(m)}}));
+  allM.sort((a,b)=>((a.changes[0]||{}).date||'').localeCompare((b.changes[0]||{}).date||''));
+  const aT={};D.forEach(d=>Object.entries(d.stage_transitions||{}).forEach(([k,v])=>aT[k]=(aT[k]||0)+v));
+
+  let h='<h2>Aggregate Performance</h2><div class="kpi-row">';
+  h+=kpi(aS,'Total Sent','')+kpi(aD,'Delivered','')+kpi(aO,'Opened','accent')+kpi(pct(aO,aS)+'%','Open Rate','accent');
+  h+=kpi(aC,'Clicked','accent')+kpi(pct(aC,aS)+'%','Click Rate','accent')+kpi(aB,'Bounced','warn');
+  h+=kpi(aM,'Leads Moved','good')+kpi(pct(aM,aL)+'%','Move Rate','good')+'</div>';
+
+  h+='<h2>Stage Transitions (Post-Blast)</h2><table class="trans-table"><thead><tr><th>From Stage</th><th></th><th>To Stage</th><th style="text-align:right">Count</th></tr></thead><tbody>';
+  const te=Object.entries(aT).sort((a,b)=>b[1]-a[1]);
+  if(te.length)te.forEach(([k,v])=>{const p=k.split(' -> ');h+='<tr><td>'+esc(p[0])+'</td><td><span class="arrow">&rarr;</span></td><td><span class="stage-tag '+stc(p[1])+'">'+esc(p[1])+'</span></td><td class="num">'+v+'</td></tr>'});
+  else h+='<tr><td colspan="4" style="color:var(--text-muted)">No stage transitions recorded.</td></tr>';
+  h+='</tbody></table>';
+
+  h+='<h2>Transitioned Leads ('+allM.length+')</h2><div style="overflow-x:auto"><table class="leads-table"><thead><tr><th>ID</th><th>Lead / Email</th><th>Current Stage</th><th>Opened</th><th>Clicked</th><th>Stage Transitions</th><th>Batch</th></tr></thead><tbody>';
+  if(allM.length)allM.forEach(m=>{
+    const ic=v=>v?'<span class="icon-yes">&#10003;</span>':'<span class="icon-no">&#10007;</span>';
+    let ch='';(m.changes||[]).forEach(c=>{const dt=(c.date||'').substring(0,16).replace('T',' ');ch+='<div class="transition"><span class="dt">'+esc(dt)+'</span> '+esc(c.from)+' <span class="arrow">&rarr;</span> <span class="stage-tag '+stc(c.to)+'">'+esc(c.to)+'</span></div>'});
+    h+='<tr><td class="lead-id">'+m.lead_id+'</td><td><strong>'+esc(m.name)+'</strong><br><span class="email">'+esc(m.email)+'</span></td><td><span class="stage-tag '+stc(m.current_stage)+'">'+esc(m.current_stage)+'</span></td><td>'+ic(m.opened)+'</td><td>'+ic(m.clicked)+'</td><td>'+ch+'</td><td class="batch">'+esc(m._batch)+'</td></tr>'});
+  else h+='<tr><td colspan="7" style="color:var(--text-muted)">No leads transitioned.</td></tr>';
+  h+='</tbody></table></div>';
+
+  h+='<h2>Per-Batch Breakdown</h2><div class="batch-grid">';
+  D.forEach(d=>{
+    const or2=pct(d.total_opened,d.total_traces),cr=pct(d.total_clicked,d.total_traces),mr=pct(d.leads_moved,d.total_leads);
+    h+='<div class="batch-card"><div class="batch-header"><span class="batch-id">Mailing #'+d.mailing_id+'</span><span class="batch-date">'+esc((d.sent_date||'').substring(0,10))+'</span></div>';
+    h+='<div class="batch-kpis">'+mk(d.stats.sent,'Sent')+mk(d.stats.delivered,'Delivered')+mk(d.total_opened,'Opened')+mk(or2+'%','Open Rate');
+    h+=mk(d.total_clicked,'Clicked')+mk(cr+'%','Click Rate')+mk(d.leads_moved,'Moved',1)+mk(mr+'%','Move Rate',1)+'</div>';
+    h+='<h4>Current Stage Distribution</h4><div class="dist-chart">';
+    const ds=Object.entries(d.stage_distribution||{}).sort((a,b)=>b[1]-a[1]),mx=ds.length?Math.max(...ds.map(e=>e[1])):1;
+    ds.forEach(([s,c])=>{const w=(c/mx*100).toFixed(0);h+='<div class="dist-row"><span class="dist-label">'+esc(s)+'</span><div class="dist-bar-bg"><div class="dist-bar" style="width:'+w+'%"></div></div><span class="dist-count">'+c+'</span></div>'});
+    h+='</div></div>'});
+  h+='</div>';
+
+  const noE=allM.length&&allM.every(m=>!m.opened&&!m.clicked);
+  h+='<div class="insight"><h3>Key Takeaways</h3><p>Across <strong>'+D.length+' mailing batches</strong>, <strong>'+aS.toLocaleString()+'</strong> emails were sent. <strong>'+aO.toLocaleString()+'</strong> opened (<strong>'+pct(aO,aS)+'%</strong>), <strong>'+aC+'</strong> clicked.</p>';
+  h+='<p style="margin-top:8px"><strong>'+aM+' lead(s)</strong> moved stages after the blast (<strong>'+pct(aM,aL)+'%</strong>).';
+  if(noE)h+=' Of the '+aM+' moved leads, <strong>none</strong> had opened or clicked the email.';
+  h+='</p></div>';
+  document.getElementById('content').innerHTML=h}
+
+async function loadData(){
+  const btn=document.getElementById('refreshBtn');btn.disabled=true;btn.textContent='Loading...';
+  document.getElementById('content').innerHTML='<div class="loading"><div class="spinner"></div><p>Fetching live data from Odoo...<br>This may take up to 60 seconds.</p></div>';
+  try{const r=await fetch(API_URL);if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();if(d.error)throw new Error(d.error);render(d)}
+  catch(e){document.getElementById('content').innerHTML='<div class="error-box"><strong>Failed to load data:</strong> '+esc(e.message)+'<br><br>Verify the Vercel API is deployed with ODOO_URL, ODOO_DB, ODOO_USER, ODOO_API_KEY env vars.</div>';document.getElementById('meta').innerHTML='<span class="status-dot" style="background:#da3633"></span>Error'}
+  finally{btn.disabled=false;btn.textContent='\u21BB Refresh'}}
+loadData();
+</script>
+</body></html>
