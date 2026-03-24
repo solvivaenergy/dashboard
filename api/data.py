@@ -8,7 +8,7 @@ Response is cached at the CDN edge for 5 minutes.
 import os
 import json
 import xmlrpc.client
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from http.server import BaseHTTPRequestHandler
 
@@ -214,7 +214,7 @@ def fetch_all():
             results.append(data)
 
     return {
-        'generated_at': datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),
+        'generated_at': datetime.now(timezone(timedelta(hours=8))).strftime('%Y-%m-%d %H:%M GMT+8'),
         'data': results
     }
 
